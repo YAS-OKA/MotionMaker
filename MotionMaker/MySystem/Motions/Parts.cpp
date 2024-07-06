@@ -139,20 +139,22 @@ namespace mot
 
 	void Parts::update(double dt)
 	{
-		//これいらないかもしらん
+		//これいらないかも
 		//params.pos = transform->getXY();
 
 		Object::update(dt);
 	}
 
-	Borrow<Collider> Parts::createHitbox(const Vec2& pos,const MultiPolygon& fig)
+	//MultiPolygonの中から最大の面積のものをを当たり判定にしてる
+	Borrow<Collider> Parts::createHitbox(const Vec2& pos, const MultiPolygon& fig)
 	{
-		//今はfig[0]を当たり判定にしてるけど、いつかMultiPolygon対応の当たり判定を作るべき
+		auto maxAreaFig = util::GetMax(fig.asArray(), [](Polygon p) {return p.area(); });
+
 		if (collider)remove(*collider);
 
-		collider = addComponent<Collider>(CollideBox::CollideFigure(fig[0]));
+		collider = addComponent<Collider>(CollideBox::CollideFigure(maxAreaFig));
 
-		collider->hitbox.relative = { fig[0].centroid()-pos,0 };
+		collider->hitbox.relative = { maxAreaFig.centroid() - pos,0 };
 
 		std::get<2>(collider->hitbox.shape).rotateAt({ 0,0 }, getAngle() * 1_deg);
 
